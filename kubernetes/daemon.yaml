@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: daemon
+  namespace: chore-google-nandy-io
+  labels:
+    app: daemon
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: daemon
+  template:
+    metadata:
+      labels:
+        app: daemon
+    spec:
+      containers:
+      - name: daemon
+        image: docker.io/nandyio/chore-google-daemon:0.1
+        imagePullPolicy: Always
+        env:
+        - name: CHORE_API
+          value: http://api.chore-nandy-io
+        - name: REDIS_HOST
+          value: db.redis-klot-io
+        - name: REDIS_PORT
+          value: "6379"
+        - name: REDIS_PREFIX
+          value: nandy.io/chore-google
+        - name: RANGE
+          value: "300"
+        - name: SLEEP
+          value: "20"
