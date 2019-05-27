@@ -33,6 +33,12 @@ test:
 run: network
 	docker run --rm --name=$(NAME) --network=$(NETWORK) $(VOLUMES) $(ENVIRONMENT) $(ACCOUNT)/$(IMAGE):$(VERSION)
 
+start: network
+	docker run -d --name=$(NAME) --network=$(NETWORK) $(VOLUMES) $(ENVIRONMENT) $(ACCOUNT)/$(IMAGE):$(VERSION)
+
+stop:
+	docker rm -f $(NAME)
+
 push:
 	docker push $(ACCOUNT)/$(IMAGE):$(VERSION)
 
