@@ -8,6 +8,9 @@ VOLUMES=-v ${PWD}/lib/:/opt/service/lib/ \
 		-v ${PWD}/test/:/opt/service/test/ \
 		-v ${PWD}/secret/:/opt/service/secret/
 ENVIRONMENT=-e SLEEP=5 \
+			-e REDIS_HOST=redis-klotio \
+			-e REDIS_PORT=6379 \
+			-e REDIS_CHANNEL=nandy.io/chore \
 			-e CHORE_API=http://chore-api.nandyio
 
 .PHONY: cross build network shell test run push install update remove reset

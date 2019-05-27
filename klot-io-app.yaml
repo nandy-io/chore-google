@@ -12,4 +12,6 @@ spec:
   - path: kubernetes/daemon.yaml
   requires:
   - site: github.com
+    repo: klot-io/redis
+  - site: github.com
     repo: nandy-io/chore
