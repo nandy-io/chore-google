@@ -32,3 +32,11 @@ spec:
           value: "300"
         - name: SLEEP
           value: "20"
+        volumeMounts:
+        - name: secret
+          mountPath: "/opt/service/secret"
+          readOnly: true
+      volumes:
+      - name: secret
+        secret:
+          secretName: secret
