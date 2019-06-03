@@ -103,7 +103,7 @@ class TestService(unittest.TestCase):
 
         mock_open.assert_called_once_with('/opt/service/secret/calendar.json', 'r')
         mock_build.assert_called_once_with("calendar", "v3", http="www")
-        mock_storage.assert_called_once_with('/opt/service/secret/token.json')
+        mock_storage.assert_called_once_with('/opt/service/token.json')
         mock_storage.return_value.get.return_value.authorize.assert_called_once_with("web")
         mock_api.calendarList.return_value.list.return_value.execute.return_value.get.assert_called_once_with("items", [])
 

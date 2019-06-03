@@ -14,7 +14,7 @@ ENVIRONMENT=-e SLEEP=5 \
 			-e REDIS_PREFIX=nandy.io/chore-google \
 			-e CHORE_API=http://chore-api.nandyio
 
-.PHONY: cross build network shell test run start stop push secret install update remove reset tag
+.PHONY: cross build network shell test run start stop push install secret update remove reset tag
 
 cross:
 	docker run --rm --privileged multiarch/qemu-user-static:register --reset
@@ -43,13 +43,12 @@ stop:
 push:
 	docker push $(ACCOUNT)/$(IMAGE):$(VERSION)
 
-secret:
-	kubectl create -f kubernetes/namespace.yaml
-	kubectl -n chore-google-nandy-io create secret generic secret --from-file=secret/calendar.json --from-file=secret/token.json
-
 install:
 	kubectl create -f kubernetes/namespace.yaml
 	kubectl create -f kubernetes/daemon.yaml
+
+secret:
+	kubectl -n chore-google-nandy-io create secret generic secret --from-file=secret/calendar.json --from-file=secret/token.json
 
 update:
 	kubectl replace -f kubernetes/daemon.yaml
