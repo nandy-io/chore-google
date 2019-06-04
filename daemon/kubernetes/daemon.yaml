@@ -32,6 +32,8 @@ spec:
           value: "300"
         - name: SLEEP
           value: "20"
+        - name: PYTHONUNBUFFERED
+          value: '1'
         volumeMounts:
         - name: secret
           mountPath: "/opt/service/secret"
