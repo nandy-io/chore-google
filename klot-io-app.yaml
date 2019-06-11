@@ -9,6 +9,7 @@ spec:
     repo: nandy-io/chore-google
   namespace: chore-google-nandy-io
   manifests:
+  - path: kubernetes/namespace.yaml
   - path: daemon/kubernetes/daemon.yaml
   requires:
   - site: github.com
