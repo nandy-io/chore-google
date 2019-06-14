@@ -113,17 +113,16 @@ class TestService(unittest.TestCase):
         self.assertFalse(self.daemon.check({"id": "meow"}))
         self.assertEqual(self.daemon.cache, {"meow": 7})
         self.assertEqual(self.daemon.redis.data, {"stuff/event/meow": True})
-        self.assertEqual(self.daemon.redis.expires, {"stuff/event/meow": 20})
+        self.assertEqual(self.daemon.redis.expires, {"stuff/event/meow": 86400})
 
         self.assertTrue(self.daemon.check({"id": "meow"}))
 
         self.daemon.cache = {}
         self.assertTrue(self.daemon.check({"id": "meow"}))
 
-    @unittest.mock.patch("service.time.time", unittest.mock.MagicMock(return_value=7))
+    @unittest.mock.patch("service.time.time", unittest.mock.MagicMock(return_value=86403))
     def test_clear(self):
 
-        self.daemon.range = 2
         self.daemon.cache = {
             "stay": 3,
             "go": 2
@@ -179,6 +178,32 @@ class TestService(unittest.TestCase):
         ])
 
     @unittest.mock.patch("service.datetime")
+    def test_within(self, mock_datetime):
+
+        mock_datetime.timedelta = datetime.timedelta
+        mock_datetime.timezone = datetime.timezone
+        mock_datetime.datetime.utcnow.return_value = datetime.datetime(2018, 12, 13, 14, 15, 16, tzinfo=datetime.timezone.utc)
+
+        self.daemon.calendar_id = "peeps"
+        self.daemon.calendar_api = unittest.mock.MagicMock()
+
+        self.daemon.cache["done"] = True
+
+        self.daemon.calendar_api.events.return_value.list.return_value.execute.return_value.get.return_value = [
+            {"description": "doh"}
+        ]
+
+        self.assertEqual(self.daemon.within(), [{"description": "doh"}])
+
+        self.daemon.calendar_api.events.return_value.list.assert_called_once_with(
+            calendarId="peeps", 
+            timeMin="2018-12-13T14:15:06+00:00Z", 
+            timeMax="2018-12-13T14:15:16+00:00Z", 
+            singleEvents=True
+        )
+        self.daemon.calendar_api.events.return_value.list.return_value.execute.return_value.get.assert_called_once_with("items", [])
+
+    @unittest.mock.patch("service.datetime")
     @unittest.mock.patch("traceback.format_exc")
     @unittest.mock.patch('builtins.print')
     def test_process(self, mock_print, mock_traceback, mock_datetime):
@@ -219,7 +244,7 @@ class TestService(unittest.TestCase):
     @unittest.mock.patch("requests.post")
     @unittest.mock.patch("service.datetime")
     @unittest.mock.patch("service.time.sleep")
-    @unittest.mock.patch("service.time.time", unittest.mock.MagicMock(return_value=7))
+    @unittest.mock.patch("service.time.time", unittest.mock.MagicMock(return_value=86403))
     def test_run(self, mock_sleep, mock_datetime, mock_post):
 
         self.daemon.range = 2
@@ -251,6 +276,6 @@ class TestService(unittest.TestCase):
             unittest.mock.call().raise_for_status()
         ])
 
-        self.assertEqual(self.daemon.cache, {"do": 7})
+        self.assertEqual(self.daemon.cache, {"do": 86403})
 
         mock_sleep.assert_called_with(7)

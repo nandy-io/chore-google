@@ -54,7 +54,7 @@ class Daemon(object):
             exists = self.redis.get(f"{self.prefix}/{event['id']}")
 
             if not exists:
-                self.redis.set(f"{self.prefix}/{event['id']}", True, ex=2*self.range)
+                self.redis.set(f"{self.prefix}/{event['id']}", True, ex=24*60*60)
                 return False
 
         return True
@@ -62,7 +62,7 @@ class Daemon(object):
     def clear(self):
 
         for event_id, when in list(self.cache.items()):
-            if when + self.range*2 < time.time():
+            if when + 24*60*60 < time.time():
                 del self.cache[event_id]
 
     def event(self, event):
@@ -87,20 +87,24 @@ class Daemon(object):
 
                 requests.patch(f"{self.chore}/todo", json={"todos": action["todos"]}).raise_for_status()
 
+    def within(self):
+
+        after = datetime.datetime.utcnow()
+        before = after - datetime.timedelta(seconds=self.range)
+
+        return self.calendar_api.events().list(
+            calendarId=self.calendar_id, 
+            timeMin=before.isoformat() + 'Z', 
+            timeMax=after.isoformat() + 'Z', 
+            singleEvents=True
+        ).execute().get('items', [])
+
     def process(self):
         """
         Processes events within the range
         """
 
-        after = datetime.datetime.utcnow()
-        before = after - datetime.timedelta(seconds=self.range)
-
-        for event in self.calendar_api.events().list(
-            calendarId=self.calendar_id, 
-            timeMin=before.isoformat() + 'Z', 
-            timeMax=after.isoformat() + 'Z', 
-            singleEvents=True
-        ).execute().get('items', []):
+        for event in self.within():
 
             try:
 
