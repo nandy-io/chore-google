@@ -18,6 +18,6 @@ spec:
       site: github.com
       repo: nandy-io/chore
   settings:
-  - name: google_calendar
-    description: What Calendar to Check for Upcoming Chore Events
+  - name: calendar
+    description: What Google Calendar to Check for Upcoming Chore Events
     google: calendar
