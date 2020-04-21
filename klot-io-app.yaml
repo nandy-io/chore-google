@@ -1,11 +1,10 @@
 apiVersion: klot.io/v1
-kind: App
+kind: KlotIOApp
 metadata:
   name: chore-google.nandy.io
-  version: v0.1
-  description: Chore Google - Nandy I/O
 spec:
   namespace: chore-google-nandy-io
+  description: Chore Google - Nandy I/O
   manifests:
   - path: kubernetes/namespace.yaml
   - path: daemon/kubernetes/daemon.yaml
@@ -18,3 +17,7 @@ spec:
     source:
       site: github.com
       repo: nandy-io/chore
+  settings:
+  - name: calendar
+    description: What Google Calendar to Watch for Upcoming Chore Events
+    google: calendar

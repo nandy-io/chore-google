@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: daemon
-        image: docker.io/nandyio/chore-google-daemon:0.1
+        image: docker.io/nandyio/chore-google-daemon:0.2
         imagePullPolicy: Always
         env:
         - name: CHORE_API
@@ -35,10 +35,10 @@ spec:
         - name: PYTHONUNBUFFERED
           value: '1'
         volumeMounts:
-        - name: secret
-          mountPath: "/opt/service/secret"
+        - name: config
+          mountPath: /opt/service/config
           readOnly: true
       volumes:
-      - name: secret
-        secret:
-          secretName: secret
+        - name: config
+          configMap:
+            name: config

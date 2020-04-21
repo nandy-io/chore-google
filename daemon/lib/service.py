@@ -4,6 +4,7 @@ Main module for daemon
 
 import os
 import time
+import yaml
 import json
 import datetime
 import traceback
@@ -11,9 +12,8 @@ import traceback
 import yaml
 import requests
 import redis
+import google.oauth2.credentials
 import googleapiclient.discovery
-import httplib2
-import oauth2client.file
 
 
 class Daemon(object):
@@ -29,19 +29,6 @@ class Daemon(object):
 
         self.redis = redis.StrictRedis(host=os.environ['REDIS_HOST'], port=int(os.environ['REDIS_PORT']))
         self.prefix = f"{os.environ['REDIS_PREFIX']}/event"
-
-        with open("/opt/service/secret/calendar.json", "r") as calendar_file:
-            self.calendar = json.load(calendar_file)["name"]
-
-        self.calendar_api = googleapiclient.discovery.build(
-            'calendar', 
-            'v3', 
-            http=oauth2client.file.Storage('/opt/service/token.json').get().authorize(httplib2.Http())
-        )
-
-        for calendar in self.calendar_api.calendarList().list().execute().get('items', []):
-            if calendar["summary"] == self.calendar:
-                self.calendar_id = calendar["id"]
 
         self.cache = {}
 
@@ -89,13 +76,21 @@ class Daemon(object):
 
     def within(self):
 
+        with open("/opt/service/config/settings.yaml", "r") as settings_file:
+            settings = yaml.safe_load(settings_file)
+
+        service = googleapiclient.discovery.build(
+            'calendar', 'v3',
+            credentials=google.oauth2.credentials.Credentials(**json.loads(settings['credentials']))
+        )
+
         after = datetime.datetime.utcnow()
         before = after - datetime.timedelta(seconds=self.range)
 
-        return self.calendar_api.events().list(
-            calendarId=self.calendar_id, 
-            timeMin=before.isoformat() + 'Z', 
-            timeMax=after.isoformat() + 'Z', 
+        return service.events().list(
+            calendarId=settings['watch'],
+            timeMin=before.isoformat() + 'Z',
+            timeMax=after.isoformat() + 'Z',
             singleEvents=True
         ).execute().get('items', [])
 
