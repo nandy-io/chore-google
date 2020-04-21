@@ -4,10 +4,10 @@ VERSION?=0.2
 NAME=$(IMAGE)-$(ACCOUNT)
 NETWORK=klot.io
 NAMESPACE=chore-google-nandy-io
-VOLUMES=-v ${PWD}/lib/:/opt/service/lib/ \
+VOLUMES=-v ${PWD}/config/:/opt/service/config/ \
+		-v ${PWD}/lib/:/opt/service/lib/ \
 		-v ${PWD}/bin/:/opt/service/bin/ \
-		-v ${PWD}/test/:/opt/service/test/ \
-		-v ${PWD}/secret/:/opt/service/secret/
+		-v ${PWD}/test/:/opt/service/test/
 ENVIRONMENT=-e SLEEP=20 \
 			-e RANGE=300 \
 			-e REDIS_HOST=redis-klotio \
@@ -47,9 +47,6 @@ push:
 
 install:
 	kubectl create -f kubernetes/daemon.yaml
-
-secret:
-	kubectl -n $(NAMESPACE) create secret generic secret --from-file=secret/calendar.json --from-file=secret/token.json
 
 update:
 	kubectl replace -f kubernetes/daemon.yaml
