@@ -81,14 +81,14 @@ class Daemon(object):
 
         service = googleapiclient.discovery.build(
             'calendar', 'v3',
-            credentials=google.oauth2.credentials.Credentials(**json.loads(settings['credentials']))
+            credentials=google.oauth2.credentials.Credentials(**json.loads(settings['calendar']['credentials']))
         )
 
         after = datetime.datetime.utcnow()
         before = after - datetime.timedelta(seconds=self.range)
 
         return service.events().list(
-            calendarId=settings['watch'],
+            calendarId=settings['calendar']['watch'],
             timeMin=before.isoformat() + 'Z',
             timeMax=after.isoformat() + 'Z',
             singleEvents=True

@@ -143,7 +143,7 @@ class TestService(unittest.TestCase):
     def test_within(self, mock_datetime, mock_credentials, mock_build, mock_open):
 
         mock_open.side_effect = [
-            unittest.mock.mock_open(read_data="""credentials: '{"a": 1}'\nwatch: tv""").return_value
+            unittest.mock.mock_open(read_data="""calendar:\n  credentials: '{"a": 1}'\n  watch: tv""").return_value
         ]
 
         mock_credentials.return_value = "legit"
