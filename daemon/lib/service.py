@@ -52,12 +52,26 @@ class Daemon(object):
             if when + 24*60*60 < time.time():
                 del self.cache[event_id]
 
+    CLEAN = {
+        "<span>": "",
+        "</span>": "",
+        "<br>": "\n",
+        "&nbsp;": " "
+    }
+
+    def clean(self, description):
+
+        for old, new in self.CLEAN.items():
+            description = description.replace(old, new)
+
+        return description
+
     def event(self, event):
 
         if self.check(event):
             return
 
-        for action in yaml.safe_load_all(event["description"]):
+        for action in yaml.safe_load_all(self.clean(event["description"])):
 
             if not isinstance(action, dict) or not action:
                 continue

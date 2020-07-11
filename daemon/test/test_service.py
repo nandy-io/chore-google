@@ -91,6 +91,49 @@ class TestService(unittest.TestCase):
 
         self.assertEqual(self.daemon.cache, {"stay": 3})
 
+    def test_clean(self):
+
+        description = """<span>todo: <br></span><br><span>&nbsp; person: Gaffer <br></span><br><span>&nbsp; name: Mow 1 Lawn</span><br><span><span><br><span>---</span><br><span>todo: <br></span><br><span>&nbsp; person: Gaffer <br></span><br><span>&nbsp; name: Mow 2 Lawn</span><br><span><span><br><span>---</span><br><span>todo: <br></span><br><span>&nbsp; person: Gaffer <br></span><br><span>&nbsp; name: Mow 3 Lawn</span><br><span><span><br><span>---</span><br><span>todo: <br></span><br><span>&nbsp; person: Gaffer <br></span><br><span>&nbsp; name: Mow 4 Lawn</span><br><span><span><br><span>---</span><br><span>todo: <br></span><br><span>&nbsp; person: Gaffer <br></span><br><span>&nbsp; name: Mow 5 Lawn</span><br><span><span><br><span>---</span><br><span>todo: <br></span><br><span>&nbsp; person: Gaffer <br></span><br><span>&nbsp; name: Mow 6 Lawn</span></span></span></span></span></span></span></span></span></span></span>"""
+
+        self.assertEqual(list(yaml.safe_load_all(self.daemon.clean(description))), [
+            {
+                "todo": {
+                    "person": "Gaffer",
+                    "name": "Mow 1 Lawn"
+                }
+            },
+            {
+                "todo": {
+                    "person": "Gaffer",
+                    "name": "Mow 2 Lawn"
+                }
+            },
+            {
+                "todo": {
+                    "person": "Gaffer",
+                    "name": "Mow 3 Lawn"
+                }
+            },
+            {
+                "todo": {
+                    "person": "Gaffer",
+                    "name": "Mow 4 Lawn"
+                }
+            },
+            {
+                "todo": {
+                    "person": "Gaffer",
+                    "name": "Mow 5 Lawn"
+                }
+            },
+            {
+                "todo": {
+                    "person": "Gaffer",
+                    "name": "Mow 6 Lawn"
+                }
+            }
+        ])
+
     @unittest.mock.patch("requests.post")
     @unittest.mock.patch("requests.patch")
     def test_event(self, mock_patch, mock_post):
@@ -133,6 +176,55 @@ class TestService(unittest.TestCase):
         ])
         mock_patch.assert_has_calls([
             unittest.mock.call("http://toast.com/todo", json={"todos": "them"}),
+            unittest.mock.call().raise_for_status()
+        ])
+
+        self.daemon.event({
+            "id": "real",
+            "description": """<span>todo: <br></span><br><span>&nbsp; person: Gaffer <br></span><br><span>&nbsp; name: Mow 1 Lawn</span><br><span><span><br><span>---</span><br><span>todo: <br></span><br><span>&nbsp; person: Gaffer <br></span><br><span>&nbsp; name: Mow 2 Lawn</span><br><span><span><br><span>---</span><br><span>todo: <br></span><br><span>&nbsp; person: Gaffer <br></span><br><span>&nbsp; name: Mow 3 Lawn</span><br><span><span><br><span>---</span><br><span>todo: <br></span><br><span>&nbsp; person: Gaffer <br></span><br><span>&nbsp; name: Mow 4 Lawn</span><br><span><span><br><span>---</span><br><span>todo: <br></span><br><span>&nbsp; person: Gaffer <br></span><br><span>&nbsp; name: Mow 5 Lawn</span><br><span><span><br><span>---</span><br><span>todo: <br></span><br><span>&nbsp; person: Gaffer <br></span><br><span>&nbsp; name: Mow 6 Lawn</span></span></span></span></span></span></span></span></span></span></span>"""
+        })
+        mock_post.assert_has_calls([
+            unittest.mock.call("http://toast.com/todo", json={
+                "todo": {
+                    "person": "Gaffer",
+                    "name": "Mow 1 Lawn"
+                }
+            }),
+            unittest.mock.call().raise_for_status(),
+            unittest.mock.call("http://toast.com/todo", json={
+                "todo": {
+                    "person": "Gaffer",
+                    "name": "Mow 2 Lawn"
+                }
+            }),
+            unittest.mock.call().raise_for_status(),
+            unittest.mock.call("http://toast.com/todo", json={
+                "todo": {
+                    "person": "Gaffer",
+                    "name": "Mow 3 Lawn"
+                }
+            }),
+            unittest.mock.call().raise_for_status(),
+            unittest.mock.call("http://toast.com/todo", json={
+                "todo": {
+                    "person": "Gaffer",
+                    "name": "Mow 4 Lawn"
+                }
+            }),
+            unittest.mock.call().raise_for_status(),
+            unittest.mock.call("http://toast.com/todo", json={
+                "todo": {
+                    "person": "Gaffer",
+                    "name": "Mow 5 Lawn"
+                }
+            }),
+            unittest.mock.call().raise_for_status(),
+            unittest.mock.call("http://toast.com/todo", json={
+                "todo": {
+                    "person": "Gaffer",
+                    "name": "Mow 6 Lawn"
+                }
+            }),
             unittest.mock.call().raise_for_status()
         ])
 
