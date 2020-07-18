@@ -3,6 +3,7 @@ Main module for daemon
 """
 
 import os
+import re
 import time
 import yaml
 import json
@@ -52,19 +53,11 @@ class Daemon(object):
             if when + 24*60*60 < time.time():
                 del self.cache[event_id]
 
-    CLEAN = {
-        "<span>": "",
-        "</span>": "",
-        "<br>": "\n",
-        "&nbsp;": " "
-    }
+    TAGS = re.compile(r'<.+?>')
 
     def clean(self, description):
 
-        for old, new in self.CLEAN.items():
-            description = description.replace(old, new)
-
-        return description
+        return self.TAGS.sub('', description.replace('<br>', '\n').replace('&nbsp;', ' '))
 
     def event(self, event):
 
