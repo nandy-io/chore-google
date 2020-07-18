@@ -1,6 +1,6 @@
 ACCOUNT=nandyio
 IMAGE=chore-google-daemon
-VERSION?=0.4
+VERSION?=0.4.1
 NAME=$(IMAGE)-$(ACCOUNT)
 NETWORK=klot.io
 NAMESPACE=chore-google-nandy-io
