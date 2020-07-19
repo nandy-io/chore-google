@@ -1,4 +1,4 @@
-VERSION?=0.4
+VERSION?=0.5
 NAMESPACE=chore-google-nandy-io
 .PHONY: install remove reset tag untag
 
