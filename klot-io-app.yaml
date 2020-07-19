@@ -6,7 +6,6 @@ spec:
   namespace: chore-google-nandy-io
   description: Chore Google - Nandy I/O
   manifests:
-  - path: kubernetes/namespace.yaml
   - path: daemon/kubernetes/daemon.yaml
   requires:
   - name: redis.klot.io

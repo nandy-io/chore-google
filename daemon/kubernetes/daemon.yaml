@@ -17,13 +17,13 @@ spec:
     spec:
       containers:
       - name: daemon
-        image: docker.io/nandyio/chore-google-daemon:0.4
+        image: docker.io/nandyio/chore-google-daemon:0.5
         imagePullPolicy: Always
         env:
         - name: CHORE_API
           value: http://api.chore-nandy-io
         - name: REDIS_HOST
-          value: db.redis-klot-io
+          value: db.redis
         - name: REDIS_PORT
           value: "6379"
         - name: REDIS_PREFIX
