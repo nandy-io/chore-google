@@ -1,0 +1,5 @@
+apiVersion: klot.io/v1
+kind: KlotIOApp
+metadata:
+  name: chore-google.nandy.io
+status: Installed

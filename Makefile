@@ -1,14 +1,20 @@
 VERSION?=0.5
-NAMESPACE=chore-google-nandy-io
-.PHONY: install remove reset tag untag
+TILT_PORT=26771
+.PHONY: settings up down tag untag
 
-install:
-	-kubectl create ns $(NAMESPACE)
+settings:
+	kubectl -n chore-google-nandy-io get configmap config -o jsonpath='{.data.settings\.yaml}' > config/settings.yaml
 
-remove:
-	-kubectl delete ns $(NAMESPACE)
+up:
+	mkdir -p config
+	echo "- op: add\n  path: /spec/template/spec/volumes/0/hostPath/path\n  value: $(PWD)/config" > tilt/config.yaml
+	if test ! -f config/settings.yaml; then echo "\n!!! need settings !!!\n" && exit 1; fi
+	kubectx docker-desktop
+	tilt --port $(TILT_PORT) up
 
-reset: remove install
+down:
+	kubectx docker-desktop
+	tilt down
 
 tag:
 	-git tag -a "v$(VERSION)" -m "Version $(VERSION)"
