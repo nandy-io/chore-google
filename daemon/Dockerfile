@@ -1,4 +1,4 @@
-FROM klotio/python:0.1
+FROM klotio/python:0.2
 
 COPY requirements.txt .
 
@@ -18,7 +18,5 @@ RUN apk add --no-cache --virtual .pip-deps  \
 
 COPY bin bin
 COPY lib lib
-
-ENV PYTHONPATH "/opt/service/lib:${PYTHONPATH}"
 
 CMD "/opt/service/bin/api.py"
