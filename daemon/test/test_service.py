@@ -1,5 +1,6 @@
 import unittest
 import unittest.mock
+import klotio_unittest
 
 import os
 import copy
@@ -8,30 +9,7 @@ import datetime
 
 import service
 
-class MockRedis:
-
-    def __init__(self, host, port):
-
-        self.host = host
-        self.port = port
-
-        self.data = {}
-        self.expires = {}
-
-    def get(self, key):
-
-        if key in self.data:
-            return self.data[key]
-
-        return None
-
-    def set(self, key, value, ex=None):
-
-        self.data[key] = value
-        self.expires[key] = ex
-
-
-class TestService(unittest.TestCase):
+class TestService(klotio_unittest.TestCase):
 
     @unittest.mock.patch.dict(os.environ, {
         "CHORE_API": "http://toast.com",
@@ -41,7 +19,8 @@ class TestService(unittest.TestCase):
         "RANGE": "10",
         "SLEEP": "7"
     })
-    @unittest.mock.patch("redis.StrictRedis", MockRedis)
+    @unittest.mock.patch("redis.Redis", klotio_unittest.MockRedis)
+    @unittest.mock.patch("klotio.logger", klotio_unittest.MockLogger)
     def setUp(self):
 
         self.daemon = service.Daemon()
@@ -54,17 +33,32 @@ class TestService(unittest.TestCase):
         "RANGE": "10",
         "SLEEP": "7"
     })
-    @unittest.mock.patch("redis.StrictRedis", MockRedis)
+    @unittest.mock.patch("redis.Redis", klotio_unittest.MockRedis)
+    @unittest.mock.patch("klotio.logger", klotio_unittest.MockLogger)
     def test___init__(self):
 
         daemon = service.Daemon()
 
-        self.assertEqual(daemon.chore, "http://toast.com")
+        self.assertEqual(daemon.chore_api, "http://toast.com")
         self.assertEqual(daemon.redis.host, "most.com")
         self.assertEqual(daemon.redis.port, 667)
         self.assertEqual(daemon.prefix, "stuff/event")
         self.assertEqual(daemon.range, 10)
         self.assertEqual(daemon.sleep, 7)
+
+        self.assertEqual(daemon.logger.name, "nandy-io-chore-google-daemon")
+
+        self.assertLogged(daemon.logger, "debug", "init", extra={
+            "init": {
+                "sleep": 7,
+                "range": 10,
+                "chore_api": "http://toast.com",
+                "redis": {
+                    "connection": "MockRedis<host=most.com,port=667>",
+                    "prefix": "stuff/event"
+                }
+            }
+        })
 
     @unittest.mock.patch("service.time.time", unittest.mock.MagicMock(return_value=7))
     def test_check(self):
@@ -146,6 +140,13 @@ class TestService(unittest.TestCase):
         })
         mock_post.assert_not_called()
 
+        self.assertLogged(self.daemon.logger, "info", "event", extra={
+            "event": {
+                "id": "nope",
+                "description": "nope"
+            }
+        })
+
         self.daemon.event({
             "id": "empty",
             "description": yaml.safe_dump({}, default_flow_style=False)
@@ -178,6 +179,12 @@ class TestService(unittest.TestCase):
             unittest.mock.call("http://toast.com/todo", json={"todos": "them"}),
             unittest.mock.call().raise_for_status()
         ])
+
+        self.assertLogged(self.daemon.logger, "info", "action", extra={
+            "action": {
+                "routine": "now"
+            }
+        })
 
         self.daemon.event({
             "id": "real",
@@ -254,7 +261,7 @@ class TestService(unittest.TestCase):
 
         mock_open.assert_called_once_with("/opt/service/config/settings.yaml", "r")
         mock_credentials.assert_called_once_with(a=1)
-        mock_build.assert_called_once_with('calendar', 'v3', credentials='legit')
+        mock_build.assert_called_once_with('calendar', 'v3', credentials='legit', cache_discovery=False)
 
 
         mock_build.return_value.events.return_value.list.assert_called_once_with(
