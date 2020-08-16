@@ -15,6 +15,7 @@ import redis
 import google.oauth2.credentials
 import googleapiclient.discovery
 
+import klotio
 
 class Daemon(object):
     """
@@ -23,14 +24,28 @@ class Daemon(object):
 
     def __init__(self):
 
-        self.chore = os.environ['CHORE_API']
+        self.chore_api = os.environ['CHORE_API']
         self.range = int(os.environ['RANGE'])
         self.sleep = int(os.environ['SLEEP'])
 
-        self.redis = redis.StrictRedis(host=os.environ['REDIS_HOST'], port=int(os.environ['REDIS_PORT']))
+        self.redis = redis.Redis(host=os.environ['REDIS_HOST'], port=int(os.environ['REDIS_PORT']))
         self.prefix = f"{os.environ['REDIS_PREFIX']}/event"
 
         self.cache = {}
+
+        self.logger = klotio.logger("nandy-io-chore-google-daemon")
+
+        self.logger.debug("init", extra={
+            "init": {
+                "sleep": self.sleep,
+                "range": self.range,
+                "redis": {
+                    "connection": str(self.redis),
+                    "prefix": self.prefix
+                },
+                "chore_api": self.chore_api
+            }
+        })
 
     def check(self, event):
 
@@ -71,22 +86,29 @@ class Daemon(object):
         if self.check(event):
             return
 
+        self.logger.info("event", extra={"event": event})
+
         for action in yaml.safe_load_all(self.clean(event["description"])):
+
+            self.logger.info("action", extra={"action": action})
 
             if not isinstance(action, dict) or not action:
                 continue
 
             if "routine" in action:
 
-                requests.post(f"{self.chore}/routine", json={"routine": action["routine"]}).raise_for_status()
+                self.logger.info("routine")
+                requests.post(f"{self.chore_api}/routine", json={"routine": action["routine"]}).raise_for_status()
 
             elif "todo" in action:
 
-                requests.post(f"{self.chore}/todo", json={"todo": action["todo"]}).raise_for_status()
+                self.logger.info("todo")
+                requests.post(f"{self.chore_api}/todo", json={"todo": action["todo"]}).raise_for_status()
 
             elif "todos" in action:
 
-                requests.patch(f"{self.chore}/todo", json={"todos": action["todos"]}).raise_for_status()
+                self.logger.info("todos")
+                requests.patch(f"{self.chore_api}/todo", json={"todos": action["todos"]}).raise_for_status()
 
     def within(self):
 
@@ -95,7 +117,8 @@ class Daemon(object):
 
         service = googleapiclient.discovery.build(
             'calendar', 'v3',
-            credentials=google.oauth2.credentials.Credentials(**json.loads(settings['calendar']['credentials']))
+            credentials=google.oauth2.credentials.Credentials(**json.loads(settings['calendar']['credentials'])),
+            cache_discovery=False
         )
 
         after = datetime.datetime.utcnow()
