@@ -2,6 +2,8 @@
 Main module for daemon
 """
 
+# pylint: disable=no-member
+
 import os
 import time
 import yaml
@@ -9,7 +11,6 @@ import json
 import datetime
 import traceback
 
-import yaml
 import requests
 import redis
 import google.oauth2.credentials
@@ -17,7 +18,7 @@ import googleapiclient.discovery
 
 import klotio
 
-class Daemon(object):
+class Daemon:
     """
     Main class for daemon
     """
@@ -48,6 +49,9 @@ class Daemon(object):
         })
 
     def check(self, event):
+        """
+        Check to see if we've already processed this event
+        """
 
         if event['id'] not in self.cache:
 
@@ -62,6 +66,9 @@ class Daemon(object):
         return True
 
     def clear(self):
+        """
+        Clear old checks
+        """
 
         for event_id, when in list(self.cache.items()):
             if when + 24*60*60 < time.time():
@@ -75,6 +82,9 @@ class Daemon(object):
     }
 
     def clean(self, description):
+        """
+        Clean the HTML from a description
+        """
 
         for old, new in self.CLEAN.items():
             description = description.replace(old, new)
@@ -82,6 +92,9 @@ class Daemon(object):
         return description
 
     def event(self, event):
+        """
+        Process a single event
+        """
 
         if self.check(event):
             return
@@ -111,11 +124,14 @@ class Daemon(object):
                 requests.patch(f"{self.chore_api}/todo", json={"todos": action["todos"]}).raise_for_status()
 
     def within(self):
+        """
+        Find all the events within a range
+        """
 
         with open("/opt/service/config/settings.yaml", "r") as settings_file:
             settings = yaml.safe_load(settings_file)
 
-        service = googleapiclient.discovery.build(
+        calendar = googleapiclient.discovery.build(
             'calendar', 'v3',
             credentials=google.oauth2.credentials.Credentials(**json.loads(settings['calendar']['credentials'])),
             cache_discovery=False
@@ -124,7 +140,7 @@ class Daemon(object):
         after = datetime.datetime.utcnow()
         before = after - datetime.timedelta(seconds=self.range)
 
-        return service.events().list(
+        return calendar.events().list(
             calendarId=settings['calendar']['watch'],
             timeMin=before.isoformat() + 'Z',
             timeMax=after.isoformat() + 'Z',
