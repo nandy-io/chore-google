@@ -2,7 +2,7 @@ google-auth==1.14.0
 google-auth-oauthlib==0.4.1
 google-auth-httplib2==0.0.3
 google-api-python-client==1.8.0
-PyYAML==5.1
+PyYAML==5.4
 redis==2.10.6
 requests==2.22
 coverage==4.5.1
